@@ -318,6 +318,7 @@ namespace PluginExt {
     }
     #endregion
 
+    #region Console
     /// <summary>
     /// コンソールに文字列出力
     /// Console.WriteLineを使うとUnityがトレースログ吐く度に文字色が黒になるので対策
@@ -369,5 +370,6 @@ namespace PluginExt {
       string message = String.Format(fmt , arg);
       UnityEngine.Debug.Log(message);
     }
+    #endregion
   }
 }
