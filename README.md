@@ -20,6 +20,20 @@ WriteLine("cfg.path = {0}" , cfg.path);
 // iniへの書き込み
 SaveConfig(cfg);
 ```
+#### 対応状況
+|Type  |状況       |
+|:-----|----------|
+|string|Write/Read|
+|(u)int|Write/Read|
+|(u)long|Write/Read|
+|float/double|Write/Read|
+|Array|Write/Read *1|
+|enum|未確認だけど対応してる気がする|
+|Dictionary|ReadOnly|
+|struct|NotSupported|
+|class |NotSupported|
+
+-\*1 ユーザーが編集するなどして **添字が0からはじまらない** 場合や **添字に抜けがある** 場合にデータを壊してしまうバグがある
 
 ## コンソール出力
 - WriteLine
