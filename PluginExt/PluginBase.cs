@@ -325,7 +325,7 @@ namespace PluginExt {
     /// </summary>
     /// <param name="fmt">フォーマット文字列</param>
     /// <param name="arg">[option]引数,...</param>
-    public void WriteLine(string fmt , params object[] arg) {
+    public static void WriteLine(string fmt , params object[] arg) {
 #if NOUNITYINJECTOR || NOUNITY
       if(SharedConfig.ChangeConsoleColor)
         Console.ForegroundColor = ConsoleColor.Gray;
@@ -346,7 +346,7 @@ namespace PluginExt {
     /// <param name="fmt">フォーマット文字列</param>
     /// <param name="arg">[option]引数,...</param>
     [Conditional("DEBUG")]
-    public void DebugWriteLine(string fmt , params object[] arg) {
+    public static void DebugWriteLine(string fmt , params object[] arg) {
       WriteLine(fmt , arg);
     }
 
@@ -355,7 +355,7 @@ namespace PluginExt {
     /// </summary>
     /// <param name="fmt">書式指定文字列</param>
     /// <param name="arg">[OPTION]引数,...</param>
-    public void LogWithCallTree(string fmt , params object[] arg) {
+    public static void LogWithCallTree(string fmt , params object[] arg) {
       string message = String.Format(fmt , arg);
       UnityEngine.Debug.Log(message);
     }
@@ -366,7 +366,7 @@ namespace PluginExt {
     /// <param name="fmt">書式指定文字列</param>
     /// <param name="arg">[OPTION]引数,...</param>
     [Conditional("DEBUG")]
-    public void DebugLogWithCallTree(string fmt , params object[] arg) {
+    public static void DebugLogWithCallTree(string fmt , params object[] arg) {
       string message = String.Format(fmt , arg);
       UnityEngine.Debug.Log(message);
     }
