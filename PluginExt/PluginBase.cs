@@ -94,35 +94,54 @@ namespace PluginExt {
             Marshal.FreeCoTaskMem(sb);
         }
       }
-      #region 値型の読み込み
-      delegate bool TryParseDelgate<T>(string input , out T dest);
-      public static object ReadNumber(Type t , string section , string key , string filepath , object def) {
-        if(!t.IsValueType)
-          return def;
-        string s = ReadString(section , key , filepath , def.ToString());
-        if(t.IsEnum) {
+      #region 読み込み
+      public static object ReadObject(Type t , string section , string key , string filepath , object def) {
+        string _default = String.IsNullOrEmpty(def as string) ? "" : def.ToString();
+        string s = ReadString(section , key , filepath , _default);
+        if(t == typeof(string)) {
+          return s;
+        } else if(t.IsEnum) {
           try {
             return Enum.Parse(t , s);
-          } catch(Exception) {
+          } catch {
             return def;
           }
         }
         Type[] p = new Type[2] { typeof(string) , t.MakeByRefType() };
         var methodTryParse = t.GetMethod("TryParse" , p);
-        if(methodTryParse == null) {
-          //たぶんユーザー定義構造体
-          // TODO
+        if(methodTryParse != null) {
+          var _a = new object[] { s , def };
+          if((bool)methodTryParse.Invoke(null , _a))
+            return _a[1];
           return def;
         }
+        object[] invoke_param = new object[] { section , key , filepath , def };
+        if(t.IsArray) {
+          // 配列型
+          var generic_ra = typeof(Ini).GetMethod(nameof(Ini.ReadArray));
+          var ra = generic_ra.MakeGenericMethod(t.GetElementType());
+          return ra.Invoke(null , invoke_param);
+        }else if(t.IsGenericType) {
+          //Generic型
+          Type genericType = t.GetGenericTypeDefinition();
+          if(genericType == typeof(Dictionary<,>)) {
+            // Dictionary<string,Value>
+            var generic = typeof(Ini).GetMethod(nameof(ReadDictionary));
+            var m = generic.MakeGenericMethod(t.GetGenericArguments()[1]);
+            return m.Invoke(null , invoke_param);
+          }else if(genericType == typeof(List<>)) {
+            // List<Value>
+            var generic = typeof(Ini).GetMethod(nameof(ReadList));
+            var m = generic.MakeGenericMethod(t.GetGenericArguments()[0]);
+            return m.Invoke(null , invoke_param);
+          }
+        }
+        throw new NotImplementedException();
+      }
+      public static T ReadObject<T>(string section , string key , string filepath , T def) {
+        return (T)ReadObject(typeof(T) , section , key , filepath , def);
+      }
 
-        var _a = new object[] { s , def };
-        if((bool)methodTryParse.Invoke(null , _a))
-          return _a[1];
-        return def;
-      }
-      public static T ReadNumber<T>(string section , string key , string filepath , T def) {
-        return (T)ReadNumber(typeof(T) , section , key , filepath , def);
-      }
       public static string ReadString(string section , string key , string filepath , string def) {
         StringBuilder sb = null;
         int size = 1024; uint ns = 0;
@@ -135,8 +154,8 @@ namespace PluginExt {
       }
       #endregion
       #region コレクション型
-      #region  IList
-      public static IList<T> ReadList<T>(string section , string key , string filepath , IList<T> def) {
+      #region  List
+      public static List<T> ReadList<T>(string section , string key , string filepath , List<T> def) {
         int t;
         string sec = section + separator + key;
         var list = GetKeys(sec , filepath).FindAll((s) => Int32.TryParse(s , out t));
@@ -144,86 +163,88 @@ namespace PluginExt {
         if(list.Count == 0)
           return def;
 
-        IList<T> result = new List<T>(list.Capacity);
-        if(typeof(T).IsValueType) {
-          foreach(var item in list) {
-            result.Add(ReadNumber<T>(sec , item , filepath , default(T)));
-          }
-        } else {
-          //参照型
-          if(typeof(T) == typeof(string)) {
-            foreach(var item in list) {
-              result.Add((T)(object)ReadString(sec , item , filepath , default(string)));
-            }
-          }else
-            return def;
+        List<T> result = new List<T>(list.Capacity);
+        foreach(var item in list) {
+          result.Add(ReadObject<T>(sec , item , filepath , default(T)));
         }
         return result;
       }
+
+      public static void WriteList<T>(List<T> data,string section,string key,string filepath) {
+        var sec = section + separator + key;
+        int i = 0;
+        foreach(var item in data) {
+          WriteObject<T>(item , sec , i.ToString() , filepath);
+        }
+      }
       #endregion
-      #region IDictionary
+      #region Dictionary
       public static Dictionary<string , V> ReadDictionary<V>(string section , string key , string filepath , Dictionary<string , V> def) {
         string sec = section + separator + key;
         var list = GetKeys(sec , filepath);
         if(list.Count == 0)
           return def;
         Dictionary<string , V> result = new Dictionary<string , V>(list.Capacity);
-        if(typeof(V).IsValueType) {
-          foreach(var item in list)
-            result.Add(item , ReadNumber<V>(sec , item , filepath , default(V)));
-        } else {
-          //TODO 参照型
-          return def;
-        }
+        foreach(var item in list)
+          result.Add(item , ReadObject<V>(sec , item , filepath , default(V)));
         return result;
+      }
+      public static void WriteDictionary<T>(Dictionary<string , T> data , string section , string key , string filepath) {
+        var sec = section + separator + key;
+        foreach(var item in data) {
+          WriteObject<T>(item.Value , sec , item.Key , filepath);
+        }
       }
       #endregion
       #endregion
       #region 配列型
       public static T[] ReadArray<T>(string section , string key , string filepath , T[] def) {
-        IList<T> result = ReadList<T>(section , key , filepath , def);
-        var res = new T[result.Count];
-        int i = 0;
-        foreach(var item in result) {
-          res[i++] = item;
-        }
-        return res;
+        List<T> _def = new List<T>(def.Length);
+        _def.AddRange(def);
+        List<T> result = ReadList<T>(section , key , filepath , _def);
+        return result.ToArray();
       }
       #endregion
+      public static void WriteObject(Type t , object data , string section , string key , string filepath) {
+        Type[] p = new Type[2] { typeof(string) , t.MakeByRefType() };
+        if(t.GetMethod("TryParse" , p) != null || t.IsEnum) {
+          SafeNativeMethods.WritePrivateProfileString(section , key , data.ToString() , filepath);
+        } else if(t == typeof(string)) {
+          SafeNativeMethods.WritePrivateProfileString(section , key , (string)data , filepath);
+        } else if(t.IsArray) {
+          Array x = (Array)data;
+          string sec = section + separator + key;
+          int i = 0;
+          foreach(var item in x) {
+            SafeNativeMethods.WritePrivateProfileString(sec , i.ToString() , x.GetValue(i).ToString() , filepath);
+            i++;
+          }
+        } else if(t.IsGenericType) {
+          Type genericType = t.GetGenericTypeDefinition();
+          var invoke_param = new object[] { data , section , key , filepath };
+          if(genericType == typeof(Dictionary<,>)) {
+            var generic_write = typeof(Ini).GetMethod(nameof(WriteDictionary));
+            var write = generic_write.MakeGenericMethod(t.GetGenericArguments()[1]);
+            write.Invoke(null , invoke_param);
+          } else if(genericType == typeof(List<>)) {
+            var generic_write = typeof(Ini).GetMethod(nameof(WriteList));
+            var write = generic_write.MakeGenericMethod(t.GetGenericArguments()[0]);
+            write.Invoke(null , invoke_param);
+          }
+        } else
+          throw new NotImplementedException();
+      }
+      public static void WriteObject<T>(T data , string section , string key , string filepath) {
+        WriteObject(typeof(T) , data , section , key , filepath);
+      }
+
 
       public static T Read<T>(string section , string filepath) {
         T ret = (T)Activator.CreateInstance(typeof(T));
 
         foreach(var n in typeof(T).GetFields()) {
           Type t = n.FieldType;
-          object[] invoke_param = new object[] { section , n.Name , filepath , n.GetValue(ret) };
-          if(t.IsValueType) {
-            // 値型
-            n.SetValue(ret , ReadNumber(t , section , n.Name , filepath , n.GetValue(ret)));
-          } else if(t == typeof(string)) {
-            n.SetValue(ret , ReadString(section , n.Name , filepath , (string)n.GetValue(ret)));
-          } else if(t.IsArray) {
-            // 配列型
-            var generic_ra = typeof(Ini).GetMethod(nameof(Ini.ReadArray));
-            var ra = generic_ra.MakeGenericMethod(t.GetElementType());
-            n.SetValue(ret , ra.Invoke(null , invoke_param));
-          } else if(t.IsGenericType) {
-            //Generic型
-            Type genericType = t.GetGenericTypeDefinition();
-            if(genericType == typeof(IList<>)) {
-              var generic = typeof(Ini).GetMethod(nameof(ReadList));
-              var m = generic.MakeGenericMethod(t.GetGenericArguments()[0]);
-              n.SetValue(ret , m.Invoke(null , invoke_param));
-            } else if(genericType == typeof(Dictionary<,>)) {
-              var generic = typeof(Ini).GetMethod(nameof(ReadDictionary));
-              var m = generic.MakeGenericMethod(t.GetGenericArguments()[1]);
-              n.SetValue(ret , m.Invoke(null , invoke_param));
-            }
-          } else {
-            var sb = new StringBuilder(2048);
-            SafeNativeMethods.GetPrivateProfileString(section , n.Name , n.GetValue(ret).ToString() , sb , (uint)sb.Capacity , Path.GetFullPath(filepath));
-            n.SetValue(ret , sb.ToString());
-          }
+          n.SetValue(ret , ReadObject(t , section , n.Name , filepath , n.GetValue(ret)));
         }
 
         var postd = typeof(T).GetMethod("OnPostDeserialize");
@@ -234,33 +255,11 @@ namespace PluginExt {
       }
       public static void Write<T>(string section , T data , string filepath) {
         var pres = typeof(T).GetMethod("OnPreSerialize");
+        Type[] p = new Type[2] { typeof(string) , typeof(T).MakeByRefType() };
         if(pres != null)
           pres.Invoke(data , null);
         foreach(var n in typeof(T).GetFields()) {
-          Type t = n.FieldType;
-          if(t.IsValueType) {
-            Type[] p = new Type[2] { typeof(string) , t.MakeByRefType() };
-            if(t.GetMethod("TryParse" , p) != null || t.IsEnum) {
-              SafeNativeMethods.WritePrivateProfileString(section , n.Name , n.GetValue(data).ToString() , filepath);
-            } else {
-              //ユーザー定義構造体
-            }
-          } else if(t == typeof(string)) {
-            SafeNativeMethods.WritePrivateProfileString(section , n.Name , (string)n.GetValue(data) , filepath);
-          } else if(t.IsArray) {
-            Array x = (Array)n.GetValue(data);
-            string sec = section + separator + n.Name;
-            int i = 0;
-            foreach(var item in x) {
-              SafeNativeMethods.WritePrivateProfileString(sec , i.ToString() , x.GetValue(i).ToString() , filepath);
-              i++;
-            }
-          } else if(t.IsGenericType) {
-            Type genericType = t.GetGenericTypeDefinition();
-            if(genericType == typeof(Dictionary<,>)) {
-
-            }
-          }
+          WriteObject(n.FieldType , n.GetValue(data) , section , n.Name , filepath);
         }
       }
     }
