@@ -27,6 +27,7 @@ SaveConfig(cfg);
 |(u)int|Write/Read|
 |(u)long|Write/Read|
 |float/double|Write/Read|
+|bool|Write/Read|
 |Array|Write/Read *1|
 |enum|未確認だけど対応してる気がする|
 |Dictionary|ReadOnly|
