@@ -151,7 +151,12 @@ namespace PluginExt {
           }
         } else {
           //参照型
-          return def;
+          if(typeof(T) == typeof(string)) {
+            foreach(var item in list) {
+              result.Add((T)(object)ReadString(sec , item , filepath , default(string)));
+            }
+          }else
+            return def;
         }
         return result;
       }

@@ -15,6 +15,8 @@ namespace PluginTest {
       public float s = (float)Math.PI;
       public double doubleValue = Math.PI;
       public string path = "pathtest";
+      //テスト
+      public string[] sFaceAnime41 = new string[] { "優しさ" , "微笑み" };
       public int[] d = new int[] { 1 , 4 , 6 , 7 , 8 };
       public Dictionary<string , float> priority_hoge = new Dictionary<string,float>();
       public PluginConfig() {
@@ -27,6 +29,9 @@ namespace PluginTest {
       WriteLine("{0} Plugin Test",Name);
       var cfg = ReadConfig<PluginConfig>();
       WriteLine("cfg.path = {0}" , cfg.path);
+      foreach(var item in cfg.sFaceAnime41) {
+        WriteLine(item);
+      }
       SaveConfig(cfg);
     }
   }
