@@ -216,7 +216,7 @@ namespace PluginExt {
           string sec = section + separator + key;
           int i = 0;
           foreach(var item in x) {
-            SafeNativeMethods.WritePrivateProfileString(sec , i.ToString() , x.GetValue(i).ToString() , filepath);
+            WriteObject(t.GetElementType() , item , sec , i.ToString() , filepath);
             i++;
           }
         } else if(t.IsGenericType) {

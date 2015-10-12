@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using PluginExt;
+using UnityEngine;
 
 namespace PluginTest {
   class Program {
@@ -11,6 +12,10 @@ namespace PluginTest {
   }
   public class TestPlugin : ExPluginBase {
     class PluginConfig {
+      public string[][] ss = new string[][] {
+        new string[] {"aaaa","bb" },
+        new string[] {"test","pipi"}
+      };
       public int x = 10;
       public float s = (float)Math.PI;
       public double doubleValue = Math.PI;
