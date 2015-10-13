@@ -73,7 +73,7 @@ namespace PluginTest {
       Assert(cfg.x == 500 , "Int Read/Write");
       Assert(cfg.enumColor == ConsoleColor.White , "Enum Read/Write");
       Assert(cfg.priority_hoge["test"] == 300f , "Dictionary<string,float> Read/Write");
-      Assert(cfg.ss[1][1] == "test" , "Jagged String Arrar Read/Write");
+      Assert(cfg.ss[1][1] == "test" , "Jagged String Array Read/Write");
       Assert(cfg.deep_array["Cool"][1][1] == "cc22" , "Dictionary<string,string[][]> Read/Write");
 
       bool x = true;
