@@ -29,12 +29,12 @@ SaveConfig(cfg);
 |float/double|Write/Read|
 |bool|Write/Read|
 |Array|Write/Read *1|
-|enum|未確認だけど対応してる気がする|
-|Dictionary|ReadOnly|
+|enum|Write/Read|
+|Dictionary|Write/Ready|
 |struct|NotSupported|
 |class |NotSupported|
 
--\*1 ユーザーが編集するなどして **添字が0からはじまらない** 場合や **添字に抜けがある** 場合にデータを壊してしまうバグがある
+- \*1 ユーザーが編集するなどして **添字が0からはじまらない** 場合や **添字に抜けがある** 場合にデータを壊してしまうバグがある
 
 ## コンソール出力
 - WriteLine
