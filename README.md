@@ -31,7 +31,7 @@ SaveConfig(cfg);
 |enum|Write/Read|
 |T[]|Write/Read \*1 \*2|
 |List\<T\>|Write/Read \*1 \*2|
-|Dictionary\<string,T\>|Write/Read\*2|
+|Dictionary\<string,T\>|Write/Read \*2 \*3|
 |struct|NotSupported|
 |class |NotSupported|
 
@@ -39,6 +39,7 @@ Tは表内でサポートされている任意の型
 #### 既知のバグ
 - \*1 ユーザーが編集するなどして **添字が0からはじまらない** 場合や **添字に抜けがある** 場合にデータを壊してしまうバグがある
 - \*2 配列やList / Dictionaryにおいて要素を削って保存しても適用されず次回読み込み時に読み込まれてしまう
+- \*3 キーに"::"を含む要素は読み込めない
 
 ## コンソール出力
 - WriteLine
