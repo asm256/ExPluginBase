@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginExt", "PluginExt\Plug
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginTest", "PluginTest\PluginTest.csproj", "{F246C2D6-87D9-4189-BACE-B016A14D22EC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestPluginExt", "TestPluginExt\TestPluginExt.csproj", "{E8987A77-FB1C-4E5F-ACE0-C321FB9AC874}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTest", "ConsoleTest\ConsoleTest.csproj", "{982FFF21-035E-47B7-AA8A-4D4C65531961}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{F246C2D6-87D9-4189-BACE-B016A14D22EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F246C2D6-87D9-4189-BACE-B016A14D22EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F246C2D6-87D9-4189-BACE-B016A14D22EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8987A77-FB1C-4E5F-ACE0-C321FB9AC874}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8987A77-FB1C-4E5F-ACE0-C321FB9AC874}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8987A77-FB1C-4E5F-ACE0-C321FB9AC874}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8987A77-FB1C-4E5F-ACE0-C321FB9AC874}.Release|Any CPU.Build.0 = Release|Any CPU
+		{982FFF21-035E-47B7-AA8A-4D4C65531961}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{982FFF21-035E-47B7-AA8A-4D4C65531961}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{982FFF21-035E-47B7-AA8A-4D4C65531961}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{982FFF21-035E-47B7-AA8A-4D4C65531961}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

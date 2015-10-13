@@ -487,6 +487,7 @@ namespace PluginExt {
       WriteLine(fmt , arg);
     }
 
+#if !NOUNITY
     /// <summary>
     /// CallTree付きログをoutput_log.txtに出力する
     /// </summary>
@@ -496,7 +497,6 @@ namespace PluginExt {
       string message = String.Format(fmt , arg);
       UnityEngine.Debug.Log(message);
     }
-
     /// <summary>
     /// DEBUGビルド時のみCallTree付きログをoutput_log.txtに出力する
     /// </summary>
@@ -507,6 +507,7 @@ namespace PluginExt {
       string message = String.Format(fmt , arg);
       UnityEngine.Debug.Log(message);
     }
+#endif
     #endregion
   }
 }
