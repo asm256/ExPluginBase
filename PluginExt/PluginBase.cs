@@ -7,7 +7,9 @@
 //#define NOUNITY
 // 構想中
 //#define NOUNITYINJECTOR
-
+#if !NOUNITY
+#define CM3D2
+#endif
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -506,6 +508,18 @@ namespace PluginExt {
     public static void DebugLogWithCallTree(string fmt , params object[] arg) {
       string message = String.Format(fmt , arg);
       UnityEngine.Debug.Log(message);
+    }
+#endif
+#if CM3D2
+    /// <summary>
+    /// ゲーム内ダイアログを開く
+    /// </summary>
+    /// <param name="f_strMsg">表示するメッセージ</param>
+    /// <param name="f_eType">ダイアログの種類</param>
+    /// <param name="f_dgOk">OK/YES時の処理(不要時はnull)</param>
+    /// <param name="f_dgCancel">CANCEL/NO時の処理(不要時はnull)</param>
+    public static void ShowDialog(string f_strMsg , SystemDialog.TYPE f_eType , SystemDialog.OnClick f_dgOk = null , SystemDialog.OnClick f_dgCancel = null) {
+      GameMain.Instance.SysDlg.Show(f_strMsg , f_eType , f_dgOk , f_dgCancel);
     }
 #endif
     #endregion
