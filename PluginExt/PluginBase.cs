@@ -305,10 +305,19 @@ namespace PluginExt {
     /// 設定値をiniから読み込む
     /// </summary>
     /// <typeparam name="T">受け取る型</typeparam>
-    /// <param name="section">[OPTION]Rootセクション名</param>
+    /// <param name="section">Rootセクション名</param>
     /// <returns></returns>
-    public T ReadConfig<T>(string section = "Config") where T : new() {
+    public T ReadConfig<T>(string section) where T : new() {
       return SharedConfig.ReadConfig<T>("Config" ,Name + ".ini");
+    }
+
+    /// <summary>
+    /// 設定値をiniから読み込む
+    /// </summary>
+    /// <typeparam name="T">受け取る型</typeparam>
+    /// <returns></returns>
+    public T ReadConfig<T>() where T : new() {
+      return ReadConfig<T>("Config");
     }
 
     /// <summary>
@@ -316,9 +325,18 @@ namespace PluginExt {
     /// </summary>
     /// <typeparam name="T">書き込む型</typeparam>
     /// <param name="data">書き込むデータ</param>
-    /// <param name="section">[OPTION]Rootセクション名</param>
-    public void SaveConfig<T>(T data,string section = "Config") {
+    /// <param name="section">Rootセクション名</param>
+    public void SaveConfig<T>(T data,string section) {
       SharedConfig.SaveConfig("Config",Name + ".ini" , data);
+    }
+
+    /// <summary>
+    /// 設定値をiniへ書き込む
+    /// </summary>
+    /// <typeparam name="T">書き込む型</typeparam>
+    /// <param name="data">書き込むデータ</param>
+    public void SaveConfig<T>(T data) {
+      SaveConfig<T>(data , "Config");
     }
     #endregion
 
