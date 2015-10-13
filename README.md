@@ -30,7 +30,7 @@ SaveConfig(cfg);
 |bool|Write/Read|
 |Array|Write/Read *1|
 |enum|Write/Read|
-|Dictionary|Write/Ready|
+|Dictionary|Write/Read|
 |struct|NotSupported|
 |class |NotSupported|
 
