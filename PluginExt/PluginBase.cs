@@ -77,8 +77,13 @@ namespace PluginExt {
           var parent = section + separator;
           var len = parent.Length;
           var res = Ini.GetKeys(section , File);
-          foreach(var s in Sections.FindAll((s) => s.StartsWith(parent) && s.LastIndexOf(separator) <= len))
-            res.Add(s.Substring(len));
+          HashSet<string> sections = new HashSet<string>(Sections.FindAll(s => s.StartsWith(parent))
+            .ConvertAll<string>(s => {
+              var ht = s.Substring(len);
+              var l = ht.IndexOf(separator);
+              return l == -1 ? ht : ht.Substring(0 , l);
+              }));
+          res.AddRange(sections);
           return res;
         }
         public Dictionary<string,T> ReadDictionary<T>(string section , string key , Dictionary<string,T> def) {
