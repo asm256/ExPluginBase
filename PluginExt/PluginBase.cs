@@ -46,6 +46,120 @@ namespace PluginExt {
 
     #region Save/ReadConfig
     public static class Ini {
+      public class IniFile {
+        public string File { get; }
+        public List<string> Sections { get; }
+        public IniFile(string file) {
+          File = file;
+          var sec = new List<string>();
+          IntPtr ptr = IntPtr.Zero;
+          try {
+            int nSize = 1024;
+            int ns;
+            do {
+              nSize *= 2;
+              if(ptr != IntPtr.Zero)
+                Marshal.FreeCoTaskMem(ptr);
+              ptr = Marshal.AllocCoTaskMem(nSize * 2);
+              ns = SafeNativeMethods.GetPrivateProfileSectionNames(ptr , nSize , File);
+            } while(ns == nSize - 2);
+            string[] sections = Marshal.PtrToStringAuto(ptr,ns).TrimEnd('\0').Split('\0');
+            sec.AddRange(sections);
+            Sections = sec;
+          } finally {
+            if(ptr != IntPtr.Zero)
+              Marshal.FreeCoTaskMem(ptr);
+          }
+        }
+        public List<string> GetKeyAndSections(string section) {
+          var parent = section + separator;
+          var len = parent.Length;
+          var res = Ini.GetKeys(section , File);
+          foreach(var s in Sections.FindAll((s) => s.StartsWith(parent) && s.LastIndexOf(separator) <= len))
+            res.Add(s.Substring(len));
+          return res;
+        }
+        public Dictionary<string,T> ReadDictionary<T>(string section , string key , Dictionary<string,T> def) {
+          var sec = section + separator + key;
+          var keys = GetKeyAndSections(sec);
+          if(keys.Count == 0)
+            return def;
+          Dictionary<string , T> res = new Dictionary<string , T>(keys.Count);
+          foreach(var item in keys) {
+            T val = ReadObject<T>(sec , item , default(T));
+            res.Add(item , val);
+          }
+          return res;
+        }
+        public T[] ReadArray<T>(string section , string key , T[] def) {
+          var defList = def == null ? new List<T>() : new List<T>(def.Length);
+          if(def != null)
+            defList.AddRange(def);
+          var resList = ReadList(section , key , defList);
+          return resList.ToArray();
+        }
+        public List<T> ReadList<T>(string section , string key , List<T> def) {
+          var sec = section + separator + key;
+          int t;
+          int len = sec.Length;
+          var keys = GetKeyAndSections(sec).FindAll((s) => Int32.TryParse(s , out t));
+          keys.Sort(new NaturalStringComparer());
+          if(keys.Count == 0)
+            return def;
+          var res = new List<T>(keys.Count);
+          foreach(var item in keys) {
+            T val = ReadObject<T>(sec , item , default(T));
+            res.Add(val);
+          }
+          return res;
+        }
+        public object ReadObject(Type t,string section,string key,object def) {
+          string _default = String.IsNullOrEmpty(def as string) ? "" : def.ToString();
+          string s = ReadString(section , key , File , _default);
+          if(t == typeof(string)) {
+            return s;
+          } else if(t.IsEnum) {
+            try {
+              return Enum.Parse(t , s);
+            } catch {
+              return def;
+            }
+          }
+          Type[] p = new Type[2] { typeof(string) , t.MakeByRefType() };
+          var methodTryParse = t.GetMethod("TryParse" , p);
+          if(methodTryParse != null) {
+            var _a = new object[] { s , def };
+            if((bool)methodTryParse.Invoke(null , _a))
+              return _a[1];
+            return def;
+          }
+          object[] invoke_param = new object[] { section , key  , def };
+          if(t.IsArray) {
+            // 配列型
+            var generic_ra = typeof(IniFile).GetMethod(nameof(IniFile.ReadArray));
+            var ra = generic_ra.MakeGenericMethod(t.GetElementType());
+            return ra.Invoke(this , invoke_param);
+          } else if(t.IsGenericType) {
+            //Generic型
+            Type genericType = t.GetGenericTypeDefinition();
+            if(genericType == typeof(Dictionary<,>)) {
+              // Dictionary<string,Value>
+              var generic = typeof(IniFile).GetMethod(nameof(IniFile.ReadDictionary));
+              var m = generic.MakeGenericMethod(t.GetGenericArguments()[1]);
+              return m.Invoke(this , invoke_param);
+            } else if(genericType == typeof(List<>)) {
+              // List<Value>
+              var generic = typeof(IniFile).GetMethod(nameof(IniFile.ReadList));
+              var m = generic.MakeGenericMethod(t.GetGenericArguments()[0]);
+              return m.Invoke(this , invoke_param);
+            }
+          }
+          throw new NotImplementedException();
+        }
+        public T ReadObject<T>(string section , string key,T def) {
+          return (T) ReadObject(typeof(T) , section , key,def);
+        }
+      }
       protected static class SafeNativeMethods {
         [DllImport("shlwapi.dll" , CharSet = CharSet.Unicode), SuppressUnmanagedCodeSecurity]
         public static extern int StrCmpLogicalW(string psz1 , string psz2);
@@ -241,10 +355,11 @@ namespace PluginExt {
 
       public static T Read<T>(string section , string filepath) {
         T ret = (T)Activator.CreateInstance(typeof(T));
+        IniFile ini = new IniFile(filepath);
 
         foreach(var n in typeof(T).GetFields()) {
           Type t = n.FieldType;
-          n.SetValue(ret , ReadObject(t , section , n.Name , filepath , n.GetValue(ret)));
+          n.SetValue(ret , ini.ReadObject(t , section , n.Name  , n.GetValue(ret)));
         }
 
         var postd = typeof(T).GetMethod("OnPostDeserialize");
