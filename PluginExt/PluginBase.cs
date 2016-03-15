@@ -22,6 +22,7 @@ namespace PluginExt {
   /// 共有コンフィグ
   /// </summary>
   public static class SharedConfig {
+    public static readonly string DefaultSection = "Config";
     public static string DataPath{ get; }
     public static bool ChangeConsoleColor;
     static SharedConfig() {
@@ -423,7 +424,10 @@ namespace PluginExt {
     /// <param name="section">Rootセクション名</param>
     /// <returns></returns>
     public T ReadConfig<T>(string section) where T : new() {
-      return SharedConfig.ReadConfig<T>("Config" ,Name + ".ini");
+      if (string.IsNullOrEmpty(section)) {
+        section = SharedConfig.DefaultSection;
+      }
+      return SharedConfig.ReadConfig<T>(section, Name + ".ini");
     }
 
     /// <summary>
@@ -432,7 +436,7 @@ namespace PluginExt {
     /// <typeparam name="T">受け取る型</typeparam>
     /// <returns></returns>
     public T ReadConfig<T>() where T : new() {
-      return ReadConfig<T>("Config");
+      return ReadConfig<T>(SharedConfig.DefaultSection);
     }
 
     /// <summary>
@@ -442,7 +446,10 @@ namespace PluginExt {
     /// <param name="data">書き込むデータ</param>
     /// <param name="section">Rootセクション名</param>
     public void SaveConfig<T>(T data,string section) {
-      SharedConfig.SaveConfig("Config",Name + ".ini" , data);
+      if (string.IsNullOrEmpty(section)) {
+        section = SharedConfig.DefaultSection;
+      }
+      SharedConfig.SaveConfig(section, Name + ".ini", data);
     }
 
     /// <summary>
@@ -451,7 +458,7 @@ namespace PluginExt {
     /// <typeparam name="T">書き込む型</typeparam>
     /// <param name="data">書き込むデータ</param>
     public void SaveConfig<T>(T data) {
-      SaveConfig<T>(data , "Config");
+      SaveConfig<T>(data, SharedConfig.DefaultSection);
     }
     #endregion
 
